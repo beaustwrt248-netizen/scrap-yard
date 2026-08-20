@@ -4,15 +4,17 @@ const root='app/src/main/assets/';
 const index=read(root+'index.html');
 const systems=read(root+'v17.js');
 const nav=read(root+'v18.js');
-const living=read(root+'v19.js');
-const composition=read(root+'v20.js');
+const toon=read(root+'v22.js');
+const unified=read(root+'v23.js');
+const unifiedCss=read(root+'v23.css');
 const required=['openMarket','openInventory14','openMessages14','openMap14','openCustomers14','openAchievements14','openUpgrades'];
 for(const fn of required){if(!systems.includes('window.'+fn+'='))throw new Error('Missing systems route: '+fn);}
 for(const route of ['home','inventory','messages','map','repairs','customers','market','upgrades','achievements']){if(!nav.includes(route+":")&&!nav.includes(route+"'"))throw new Error('Missing navigation route: '+route);}
-for(const script of ['core.js','app9.js','v12.js','v13.js','v17.js','v15.js','v18.js','v19.js','v20.js']){if(!index.includes('src="'+script+'"'))throw new Error('index missing '+script);}
-for(const css of ['app9.css','v11.css','v12.css','v13.css','v14.css','v15.css','v19.css','v20.css']){if(!index.includes('href="'+css+'"'))throw new Error('index missing '+css);}
-if(index.includes('src="v14.js"'))throw new Error('broken v14 systems layer must not load');
-if(index.includes('src="v16.js"'))throw new Error('legacy v16 delegated nav must not load');
-if(!living.includes("document.querySelector('.scene')"))throw new Error('v19 living shop hook missing');
-if(!composition.includes("classList.add('v20Shop')"))throw new Error('v20 shop composition hook missing');
-console.log('SCRAP//YARD navigation + v20 shop smoke test passed');
+for(const script of ['core.js','app9.js','v12.js','v13.js','v17.js','v15.js','v18.js','v22.js','v23.js']){if(!index.includes('src="'+script+'"'))throw new Error('index missing '+script);}
+for(const css of ['app9.css','v11.css','v12.css','v13.css','v14.css','v15.css','v22.css','v23.css']){if(!index.includes('href="'+css+'"'))throw new Error('index missing '+css);}
+for(const legacy of ['v14.js','v16.js','v19.js','v20.js','v21.js']){if(index.includes('src="'+legacy+'"'))throw new Error('legacy visual/runtime layer must not load: '+legacy);}
+for(const legacyCss of ['v19.css','v20.css','v21.css']){if(index.includes('href="'+legacyCss+'"'))throw new Error('legacy visual CSS must not load: '+legacyCss);}
+if(!toon.includes('Jake Miller')||!toon.includes('Mia Chen'))throw new Error('illustrated customer layer missing profiles');
+for(const hook of ['v23World','v23Dialogue','v23PersonStage','v23CounterStage','v23BenchTitle']){if(!unified.includes(hook))throw new Error('v23 presentation hook missing: '+hook);}
+for(const cls of ['.v23Scene','.v23Repair','.v23DeviceBench','.v23Dialogue']){if(!unifiedCss.includes(cls))throw new Error('v23 style missing: '+cls);}
+console.log('SCRAP//YARD v0.23 navigation + unified presentation smoke test passed');
