@@ -30,6 +30,7 @@ jobs:
           node --check app/src/main/assets/v15.js
           node --check app/src/main/assets/v18.js
           node --check app/src/main/assets/v19.js
+          node --check app/src/main/assets/v20.js
       - name: Navigation and shop smoke test
         run: node tests/navigation-smoke.js
       - name: Set up Java 21
@@ -52,12 +53,12 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: SCRAP-YARD-v0.19-debug
+          name: SCRAP-YARD-v0.20-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
       - name: Upload unsigned release APK
         uses: actions/upload-artifact@v4
         with:
-          name: SCRAP-YARD-v0.19-release-unsigned
+          name: SCRAP-YARD-v0.20-release-unsigned
           path: app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: error
