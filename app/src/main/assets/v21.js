@@ -1,0 +1,9 @@
+(function(){'use strict';
+function rebuild(){var scene=document.querySelector('.scene');if(!scene||scene.dataset.v21==='1')return;scene.dataset.v21='1';scene.classList.add('v21Scene');var speech=scene.querySelector('.speech'),customer=scene.querySelector('.customer'),device=scene.querySelector('.device'),decision=scene.querySelector('.decision'),counter=scene.querySelector('.counter'),shelves=scene.querySelector('.shelves'),neon=scene.querySelector('.neon');if(!speech||!customer||!device||!decision||!counter)return;
+var bg=document.createElement('div');bg.className='v21Backdrop';bg.innerHTML='<div class="v21Ceiling"></div><div class="v21WallSign">SCRAP//YARD</div><div class="v21FixSign">WE FIX<br>ANYTHING!</div><div class="v21Peg"><span>🔧</span><span>🪛</span><span>🧰</span><span>⚙️</span></div><div class="v21ShelfBits"><i></i><i></i><i></i><i></i></div><div class="v21Cat">🐈</div><div class="v21Lamp"></div><div class="v21FloorLight"></div>';scene.insertBefore(bg,scene.firstChild);
+if(neon)neon.style.display='none';if(shelves)shelves.classList.add('v21Shelves');counter.classList.add('v21Counter');customer.classList.add('v21Customer');speech.classList.add('v21Speech');device.classList.add('v21Device');decision.classList.add('v21Decision');
+var status=document.createElement('div');status.className='v21Status';status.innerHTML='<b>CUSTOMER REQUEST</b><span>Inspect the device and choose a response.</span>';scene.appendChild(status);
+}
+var busy=false;function tick(){if(busy)return;busy=true;requestAnimationFrame(function(){busy=false;rebuild()})}
+window.addEventListener('load',function(){tick();var main=document.getElementById('main');if(main)new MutationObserver(tick).observe(main,{childList:true,subtree:true})});
+})();
