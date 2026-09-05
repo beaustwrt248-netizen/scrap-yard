@@ -5,35 +5,246 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Scrap Yard</title>
     
-    <!-- CSS references required by automated test runner -->
+    <!-- Production CSS files -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="app9.css">
-    <link rel="stylesheet" href="shop7.css">
     <link rel="stylesheet" href="shop8.css">
-    <link rel="stylesheet" href="v11.css">
-    <link rel="stylesheet" href="v12.css">
-    <link rel="stylesheet" href="v13.css">
-    <link rel="stylesheet" href="v14.css">
-    <link rel="stylesheet" href="v15.css">
-    <link rel="stylesheet" href="v19.css">
-    <link rel="stylesheet" href="v20.css">
-    <link rel="stylesheet" href="v21.css">
-    <link rel="stylesheet" href="v22.css">
     <link rel="stylesheet" href="v23.css">
     <link rel="stylesheet" href="visual6.css">
 
-    <!-- Script references required by automated test runner -->
-    <script src="animation6.js"></script>
-    <script src="app9.js"></script>
+    <!-- Active Production Scripts required by build smoke test -->
     <script src="core.js"></script>
-    <script src="game1.js"></script>
-    <script src="game2.js"></script>
-    <script src="game3.js"></script>
     <script src="game4.js"></script>
-    <script src="shop7.js"></script>
-    <script src="shop8.js"></script>
-    <script src="ui1.js"></script>
     <script src="ui2.js"></script>
+    <script src="shop8.js"></script>
+    <script src="v23.js"></script>
+    <script src="app9.js"></script>
+    <script src="animation6.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #05080d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: sans-serif;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            background: radial-gradient(circle at center, #1e2638 0%, #0d111a 70%, #05080d 100%);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const VIRTUAL_WIDTH = 480;
+    const VIRTUAL_HEIGHT = 852;
+
+    let scale = 1;
+
+    function resize() {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        const scaleX = windowWidth / VIRTUAL_WIDTH;
+        const scaleY = windowHeight / VIRTUAL_HEIGHT;
+        scale = Math.min(scaleX, scaleY);
+
+        canvas.width = VIRTUAL_WIDTH * scale;
+        canvas.height = VIRTUAL_HEIGHT * scale;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    function getTouchPos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+
+        return {
+            x: (clientX - rect.left) / scale,
+            y: (clientY - rect.top) / scale
+        };
+    }
+
+    let score = 0;
+    let particles = [];
+    let scrapItems = [];
+    let lastTime = performance.now();
+
+    class Scrap {
+        constructor() {
+            this.reset();
+        }
+
+        reset() {
+            this.width = 60 + Math.random() * 40;
+            this.height = 40 + Math.random() * 30;
+            this.x = Math.random() * (VIRTUAL_WIDTH - this.width) + this.width / 2;
+            this.y = -50;
+            this.speed = 150 + Math.random() * 150;
+            this.rotation = Math.random() * Math.PI;
+            this.rotSpeed = (Math.random() - 0.5) * 2;
+            this.colorHue = Math.floor(Math.random() * 40) + 15;
+        }
+
+        update(dt) {
+            this.y += this.speed * dt;
+            this.rotation += this.rotSpeed * dt;
+
+            if (this.y - this.height > VIRTUAL_HEIGHT) {
+                this.reset();
+            }
+        }
+
+        draw() {
+            ctx.save();
+            ctx.translate(this.x * scale, this.y * scale);
+            ctx.rotate(this.rotation);
+
+            const w = this.width * scale;
+            const h = this.height * scale;
+
+            let grad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+            grad.addColorStop(0, `hsl(${this.colorHue}, 40%, 45%)`);
+            grad.addColorStop(0.5, `hsl(${this.colorHue}, 20%, 25%)`);
+            grad.addColorStop(1, `hsl(${this.colorHue}, 50%, 15%)`);
+
+            ctx.fillStyle = grad;
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 2 * scale;
+
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 10 * scale;
+            ctx.shadowOffsetY = 5 * scale;
+
+            ctx.beginPath();
+            ctx.roundRect(-w/2, -h/2, w, h, 6 * scale);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        isTapped(pos) {
+            const dx = pos.x - this.x;
+            const dy = pos.y - this.y;
+            return Math.sqrt(dx * dx + dy * dy) < (this.width / 1.5);
+        }
+    }
+
+    class Particle {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.vx = (Math.random() - 0.5) * 300;
+            this.vy = (Math.random() - 0.5) * 300;
+            this.life = 1.0;
+            this.decay = 1.5 + Math.random();
+            this.size = 3 + Math.random() * 4;
+        }
+
+        update(dt) {
+            this.x += this.vx * dt;
+            this.y += this.vy * dt;
+            this.life -= this.decay * dt;
+        }
+
+        draw() {
+            if (this.life <= 0) return;
+            ctx.save();
+            ctx.fillStyle = `rgba(255, 180, 50, ${this.life})`;
+            ctx.beginPath();
+            ctx.arc(this.x * scale, this.y * scale, this.size * scale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    for (let i = 0; i < 5; i++) {
+        scrapItems.push(new Scrap());
+    }
+
+    function spawnSparks(x, y) {
+        for (let i = 0; i < 12; i++) {
+            particles.push(new Particle(x, y));
+        }
+    }
+
+    function handleInteraction(evt) {
+        const pos = getTouchPos(evt);
+        scrapItems.forEach(item => {
+            if (item.isTapped(pos)) {
+                score += 10;
+                spawnSparks(item.x, item.y);
+                item.reset();
+            }
+        });
+    }
+
+    canvas.addEventListener('pointerdown', handleInteraction);
+
+    function gameLoop(timestamp) {
+        const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+        lastTime = timestamp;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        scrapItems.forEach(item => {
+            item.update(dt);
+            item.draw();
+        });
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update(dt);
+            particles[i].draw();
+            if (particles[i].life <= 0) particles.splice(i, 1);
+        }
+
+        ctx.save();
+        ctx.fillStyle = '#f0a500';
+        ctx.font = `bold ${24 * scale}px sans-serif`;
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 6 * scale;
+        ctx.fillText(`SCRAP SCORE: ${score}`, 20 * scale, 45 * scale);
+        ctx.restore();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
     <script src="v12.js"></script>
     <script src="v13.js"></script>
     <script src="v14.js"></script>
